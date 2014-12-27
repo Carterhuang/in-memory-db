@@ -1,0 +1,14 @@
+usage: imdb_main.py [-h] [-f [FILE]]
+
+This is the implementation for an in-memory database.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f [FILE], --file [FILE]
+                        Read input from an input file
+
+To read command line by line, just do:
+	"python imdb_main.py"
+
+To read command line by file, then do:
+	"python imdb_cli.py -f <file_name>"

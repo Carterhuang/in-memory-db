@@ -11,14 +11,14 @@ class InMemoryDB(object):
         keys that correspond to the same values. "block_stack"
         is a in-memory log for rollback purpose.
         """
-        
+
         # The key of the table is a string while the value
         # of the table is a list. e.g. if we do "SET a 10"
         # and then "SET a 20", then the key is 'a' while
-        # the value is [10, 20]. When we call "GET a", the 
+        # the value is [10, 20]. When we call "GET a", the
         # function retrieves the last value of the list as
-        # the return value. For the same key we keep track of 
-        # all previous values so that they can be rollbacked 
+        # the return value. For the same key we keep track of
+        # all previous values so that they can be rollbacked
         # later.
         self.table = {}
         self.value_count = {}
@@ -33,7 +33,7 @@ class InMemoryDB(object):
         value_count = self.value_count
 
         # The put operation will check the in-memory log,
-        # "block_stack", to find the most recent block and 
+        # "block_stack", to find the most recent block and
         # append the current put transaction to the end of that 
         # block. However, if this function is triggered by
         # rollback, then this part will be skipped.
@@ -58,7 +58,7 @@ class InMemoryDB(object):
             table[key] = [value]
 
     def get(self, key):
-        """ 
+        """
         Retrieves the most recent value in the "key-value"
         table, otherwise, returns NULL.
         """    
@@ -91,7 +91,7 @@ class InMemoryDB(object):
                 value_count[value] -= 1
                 if value_count[value] == 0:
                     del value_count[value]
-    
+ 
             # If triggered by rollback, then pop of the most
             # recent value corresponding to that key.
             if rollback:
@@ -118,7 +118,7 @@ class InMemoryDB(object):
 
     def roll_back(self):
         """
-        
+        Roll back the most recent transaction block.        
         """
         if self.block_stack == []:
             print 'NO TRANSACTION'
@@ -134,9 +134,16 @@ class InMemoryDB(object):
                 self.unset(key, rollback=True)
 
     def commit(self):
+        """
+        Clear the in-memory log so that the transactions are made
+        permenant. 
+        """
         del self.block_stack[:]
 
     def take_transaction(self, command):
+        """
+        Read in a command in a line. 
+        """
         operation, key, value = parse_transaction(command)
 
         if operation == 'SET':
@@ -158,6 +165,10 @@ class InMemoryDB(object):
 
 
 def parse_transaction(line):
+    """
+    Break an entire command into a list of keywords. If the length
+    of the list is below three, then fill it with 'None'.
+    """
     transaction = [ word.strip(' \n') for word in line.split() ]
     while len(transaction) < 3:
         transaction.append(None)

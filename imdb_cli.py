@@ -1,4 +1,4 @@
-from imdb import InMemoryDB, parse_transaction
+from imdb import InMemoryDB
 import argparse
 import sys
 
@@ -8,7 +8,8 @@ cache = InMemoryDB()
 
 # Parsing args
 parser = argparse.ArgumentParser(description='In-memory database.')
-parser.add_argument('-f', '--file', nargs='?', default='', help='Read input from an input file')
+parser.add_argument('-f', '--file', nargs='?', 
+    default='', help='Read input from an input file')
 
 args = vars(parser.parse_args())
 
