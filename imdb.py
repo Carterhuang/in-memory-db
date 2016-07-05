@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 class InMemoryDB(object):
@@ -121,7 +122,7 @@ class InMemoryDB(object):
         Roll back the most recent transaction block.        
         """
         if self.block_stack == []:
-            print 'NO TRANSACTION'
+            print ('NO TRANSACTION')
             return
 
         roll_back_block = self.block_stack.pop()
@@ -140,28 +141,23 @@ class InMemoryDB(object):
         """
         del self.block_stack[:]
 
+
     def take_transaction(self, command):
         """
         Read in a command in a line. 
         """
         operation, key, value = parse_transaction(command)
 
-        if operation == 'SET':
-            self.put(key, value)
-        elif operation == 'UNSET':
-            self.unset(key)
-        elif operation == 'GET':
-            print self.get(key)
-        elif operation == 'NUMEQUALTO':
-            print self.num_equal_to(key)
-        elif operation == 'BEGIN':
-            self.initiate_block()
-        elif operation == 'ROLLBACK':
-            self.roll_back()
-        elif operation == 'COMMIT':
-            self.commit()
-        elif operation == 'END':
-            sys.exit(0)
+        return {
+            'SET' :        lambda self, k, v: self.put(k, v),
+            'UNSET' :      lambda self, k, v: self.unset(k),
+            'GET' :        lambda self, k, v: print (self.get(k)),
+            'NUMEQUALTO' : lambda self, k, v: print (self.num_equal_to(k)),
+            'BEGIN' :      lambda self, k, v: self.initiate_block(),
+            'ROLLBACK' :   lambda self, k, v: self.roll_back(),
+            'COMMIT' :     lambda self, k, v: self.commit(),
+            'END' :        lambda self, k, v: sys.exit(0)
+        } [operation] (self, key, value)
 
 
 def parse_transaction(line):
