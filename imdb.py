@@ -9,7 +9,7 @@ class InMemoryDB(object):
         """
         The "table" serves as a "key-value" container. The
         "value_count" counts the number of distinguished
-        keys that correspond to the same values. "block_stack"
+        keys that correspond to the same values. "transaction_log"
         is a in-memory log for rollback purpose.
         """
 
@@ -23,23 +23,23 @@ class InMemoryDB(object):
         # later.
         self.table = {}
         self.value_count = {}
-        self.block_stack = []
+        self.transaction_log = []
 
     def put(self, key, value, rollback=False):
         """
         This funtion does what a 'SET' call will do, stores
         a key-value pair in the map.
         """
-        table, block_stack = self.table, self.block_stack
+        table, transaction_log = self.table, self.transaction_log
         value_count = self.value_count
 
         # The put operation will check the in-memory log,
-        # "block_stack", to find the most recent block and
+        # "transaction_log", to find the most recent block and
         # append the current put transaction to the end of that 
         # block. However, if this function is triggered by
         # rollback, then this part will be skipped.
-        if block_stack != [] and not rollback:
-            block = block_stack[-1]
+        if transaction_log != [] and not rollback:
+            block = transaction_log[-1]
             block.append(('SET', key, value))
 
         # Update the map of "value_count".
@@ -77,12 +77,12 @@ class InMemoryDB(object):
         triggered by rollback. Otherwise, it deletes the key-value
         pair from the map.
         """
-        table, block_stack = self.table, self.block_stack
+        table, transaction_log = self.table, self.transaction_log
         value_count = self.value_count
 
         if key in table:
-            if block_stack != [] and not rollback:
-                block = block_stack[-1]
+            if transaction_log != [] and not rollback:
+                block = transaction_log[-1]
                 unset_value = table[key][-1]
                 block.append(('UNSET', key, unset_value))
 
@@ -115,17 +115,17 @@ class InMemoryDB(object):
         This function is called when a 'BEGIN' is read in 
         from command line.
         """
-        self.block_stack.append([])
+        self.transaction_log.append([])
 
     def roll_back(self):
         """
         Roll back the most recent transaction block.        
         """
-        if self.block_stack == []:
+        if self.transaction_log == []:
             print ('NO TRANSACTION')
             return
 
-        roll_back_block = self.block_stack.pop()
+        roll_back_block = self.transaction_log.pop()
         roll_back_block.reverse()
 
         for operation, key, value in roll_back_block:
@@ -139,7 +139,7 @@ class InMemoryDB(object):
         Clear the in-memory log so that the transactions are made
         permenant. 
         """
-        del self.block_stack[:]
+        del self.transaction_log[:]
 
 
     def take_transaction(self, command):
